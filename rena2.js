@@ -412,6 +412,28 @@
 
             br: function() {
                 return wrap(/\r\n|\r|\n/);
+            },
+
+            letrec: function() {
+                var l = Array.prototype.slice.call(arguments),
+                    i,
+                    res;
+                res = (function(g) {
+                    return g(g);
+                })(function(p) {
+                    var i,
+                        li,
+                        res = [];
+                    for(i = 0; i < l.length; i++) {
+                        (function (li) {
+                            res.push(function(str, index, captures) {
+                                return (wrap(li.apply(null, p(p))))(str, index, captures);
+                            });
+                        })(l[i]);
+                    }
+                    return res;
+                });
+                return res[0];
             }
         };
         return me;
