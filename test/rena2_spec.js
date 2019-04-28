@@ -20,14 +20,6 @@ describe("Rena2", function () {
         expect(pattern(string, 0, false)).toBeNull();
     }
 
-    function attr(match, attr, inherit) {
-        return function(m, a, i, e) {
-            expect(m).toBe(match);
-            expect(a).toBe(attr);
-            expect(i).toBe(inherit);
-        }
-    }
-
     function fntest(str, index, attr) {
         if(str.charAt(index) === "a") {
             return {
@@ -80,6 +72,12 @@ describe("Rena2", function () {
             match(r.br(), "\r", "\r", 1);
             match(r.br(), "\r\n", "\r\n", 2);
             nomatch(r.br(), "a");
+        });
+
+        it("end", function () {
+            match(R().then("765", R().end()), "765", "765", 3);
+            nomatch(R().then("765", R().end()), "765961");
+            match(R().end(), "", "", 0);
         });
 
         it("equalsId", function () {
@@ -171,17 +169,18 @@ describe("Rena2", function () {
             match(R().times(2, false, "str"), "strstr", "strstr", 6);
             match(R().times(2, false, "str"), "strstrstrstrstr", "strstrstrstrstr", 15);
             nomatch(R().times(2, false, "str"), "str");
+            match(R().times(0, 0, "str"), "strstr", "", 0);
+            expect(function() { R().times(-1, 1, "str").parse("a"); }).toThrow();
+            expect(function() { R().times(1, 0, "str").parse("a"); }).toThrow();
         });
 
         it("atLeast", function () {
-            var ptn1 = R().atLeast(1, R().then(/[a-z]/, R.I), function(x, a, b) { return a + b; }, "");
             match(R().atLeast(2, "str"), "strstr", "strstr", 6);
             match(R().atLeast(2, "str"), "strstrstrstrstr", "strstrstrstrstr", 15);
             nomatch(R().atLeast(2, "str"), "str");
         });
 
         it("atMost", function () {
-            var ptn1 = R().atMost(3, R().then(/[a-z]/, R.I), function(x, a, b) { return a + b; }, "");
             match(R().atMost(4, "str"), "", "", 0);
             match(R().atMost(4, "str"), "str", "str", 3);
             match(R().atMost(4, "str"), "strstr", "strstr", 6);
@@ -198,21 +197,18 @@ describe("Rena2", function () {
         });
 
         it("oneOrMore", function () {
-            var ptn1 = R().oneOrMore(R().then(/[a-z]/, R.I), function(x, a, b) { return a + b; }, "");
             match(R().oneOrMore("str"), "str", "str", 3);
             match(R().oneOrMore("str"), "strstrstrstrstr", "strstrstrstrstr", 15);
             nomatch(R().oneOrMore("str"), "");
         });
 
         it("zeroOrMore", function () {
-            var ptn1 = R().zeroOrMore(R().then(/[a-z]/, R.I), function(x, a, b) { return a + b; }, "");
             match(R().zeroOrMore("str"), "", "", 0);
             match(R().zeroOrMore("str"), "str", "str", 3);
             match(R().zeroOrMore("str"), "strstrstrstrstr", "strstrstrstrstr", 15);
         });
 
         it("delimit", function () {
-            var ptn1 = R().delimit(R().then(/[0-9]+/, R.I), "+", function(x, a, b) { return a + b; }, "");
             match(R().delimit(/[0-9]+/, "+"), "7", "7", 1);
             match(R().delimit(/[0-9]+/, "+"), "7+65", "7+65", 4);
             match(R().delimit(/[0-9]+/, "+"), "7+", "7", 1);
@@ -254,6 +250,46 @@ describe("Rena2", function () {
             nomatch(q.notKey(), "+");
             nomatch(q.notKey(), "++");
             nomatch(q.notKey(), "*");
+        });
+
+        it("letrec", function () {
+            var r = R(),
+                ptn1;
+            function assertParse(str) {
+                return ptn1(str, 0, 0);
+            }
+
+            ptn1 = r.letrec(function(t, f, e) {
+                return r.then(f, r.zeroOrMore(r.or(
+                    r.action(r.then("+", f), function(x, a, b) { return b + a; }),
+                    r.action(r.then("-", f), function(x, a, b) { return b - a; }))))
+            }, function(t, f, e) {
+                return r.then(e, r.zeroOrMore(r.or(
+                    r.action(r.then("*", e), function(x, a, b) { return b * a; }),
+                    r.action(r.then("/", e), function(x, a, b) { return b / a; }))))
+            }, function(t, f, e) {
+                return r.or(r.real(), r.then("(", t, ")"))
+            });
+            expect(assertParse("1+2*3").attr).toBe(7);
+            expect(assertParse("(1+2)*3").attr).toBe(9);
+            expect(assertParse("4-6/2").attr).toBe(1);
+            expect(assertParse("1+2+3*3").attr).toBe(12);
+        });
+
+        it("CSV", function () {
+            var r = R(), csvparser;
+            function parse(str) {
+                return csvparser(str, 0, false).attr;
+            }
+            csvparser = r.then(r.attr([]), r.maybe(r.delimit(r.action(r.then(r.attr([]), r.delimit(r.or(
+                r.then('"', r.action(/(""|[^"])+/, function(m, s, i) { return i.concat([m.replace('""', '"')]); }), '"'),
+                r.action(/[^",\n\r]+/, function(m, s, i) { return i.concat([m]); })
+            ), ",")), function(m, s, i) { console.log(s);return i.concat([s]); }), r.br())), r.maybe(r.br()), r.end());
+            expect(parse('a,b,c\nd,"e\n""f",g\nh\n')).toEqual([["a","b","c"],["d","e\n\"f","g"],["h"]]);
+            expect(parse('a,b,c\nd,"e\n""f",g\nh')).toEqual([["a","b","c"],["d","e\n\"f","g"],["h"]]);
+            expect(parse('d,"e\n""f",g')).toEqual([["d","e\n\"f","g"]]);
+            expect(parse('d')).toEqual([["d"]]);
+            expect(parse('')).toEqual([]);
         });
     });
 });
