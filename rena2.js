@@ -138,6 +138,20 @@
             }
         }
 
+        function anchor(position) {
+            return function(match, lastindex, attr) {
+                if(lastindex === position(match)) {
+                    return {
+                        match: "",
+                        lastIndex: lastindex,
+                        attr: attr
+                    };
+                } else {
+                    return null;
+                }
+            }
+        }
+
         me = {
             then: function() {
                 var args = Array.prototype.slice.call(arguments);
@@ -189,6 +203,9 @@
                 var wrapped = wrap(pattern),
                     action = actionFunction ? actionFunction : function(match, syn, inh) { return syn; };
 
+                if(mincount < 0 || (maxcount && maxcount < mincount)) {
+                    throw new Error("Illegal position");
+                }
                 return function(match, lastindex, attr) {
                     var matched,
                         matchedNew,
@@ -200,7 +217,7 @@
                         lastIndex: lastindex,
                         attr: attr
                     };
-                    for(i = 0; !maxcount || i < maxcount; i++) {
+                    for(i = 0; maxcount === false || i < maxcount; i++) {
                         if(!!(matchedNew = wrapped(match, matched.lastIndex, matched.attr))) {
                             matchedString = match.substring(lastindex, matchedNew.lastIndex);
                             matched = {
@@ -412,6 +429,10 @@
 
             br: function() {
                 return wrap(/\r\n|\r|\n/);
+            },
+
+            end: function() {
+                return anchor(function(match) { return match.length; });
             },
 
             letrec: function() {
