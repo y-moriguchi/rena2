@@ -1,0 +1,27 @@
+{
+  "name": "rena2",
+  "version": "1.0.0",
+  "description": "Parsing Library by Parsing Expression Grammar",
+  "main": "rena2.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/y-moriguchi/rena2.git"
+  },
+  "keywords": [
+    "Parsing",
+    "PEG",
+    "Parsing Expression Grammar"
+  ],
+  "author": "Yuichiro MORIGUCHI",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/y-moriguchi/rena2/issues"
+  },
+  "homepage": "https://github.com/y-moriguchi/rena2#readme"
+}

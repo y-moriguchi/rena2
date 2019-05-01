@@ -8,6 +8,17 @@ Rena2 can also treat synthesized and inherited attributes.
 
 ## How to use
 
+### node.js
+Install Rena2:
+```
+npm install rena2
+```
+
+Use module:
+```js
+var R = require('rena2');
+```
+
 ### Browser
 ```html
 <script src="rena2.js"></script>
@@ -72,7 +83,7 @@ The table shows how to match expression r.equalsId("keyword") by option.
 
 |option|keyword|keyword1|keyword-1|keyword+|
 |:-----|:------|:-------|:--------|:-------|
-|no options|match|match|match|
+|no options|match|match|match|match|
 |ignore: /-/|match|no match|match|no match|
 |keys: ["+"]|match|no match|no match|match|
 |ignore: /-/ and keys: ["+"]|match|no match|match|match|
