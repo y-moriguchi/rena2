@@ -69,6 +69,7 @@ r.equalsId(keyword);
 ```
 
 The table shows how to match expression r.equalsId("keyword") by option.
+
 |option|keyword|keyword1|keyword-1|keyword+|
 |:-----|:------|:-------|:--------|:-------|
 |no options|match|match|match|
