@@ -435,6 +435,77 @@
                 return anchor(function(match) { return match.length; });
             },
 
+            triesTimes: function(mincount, maxcount, pattern, succ, actionFunction) {
+                var wrapped = wrap(pattern),
+                    wrappedSucc,
+                    action = actionFunction ? actionFunction : function(match, syn, inh) { return syn; };
+
+                function empty(match, lastindex, attr) {
+                    return {
+                        match: "",
+                        lastIndex: lastindex,
+                        attr: attr
+                    };
+                }
+                if(mincount < 0 || (maxcount && maxcount < mincount)) {
+                    throw new Error("Illegal position");
+                }
+                wrappedSucc = succ ? wrap(succ) : empty;
+
+                return function(match, lastindex, attr) {
+                    var matched,
+                        matchedNew,
+                        matchedString,
+                        matchedStack = [],
+                        i;
+
+                    function nextMatched(matchedNew, attrBefore, action) {
+                        var matchedString,
+                            matched;
+
+                        matchedString = match.substring(lastindex, matchedNew.lastIndex);
+                        matched = {
+                            match: matchedString,
+                            lastIndex: matchedNew.lastIndex,
+                            attr: action(matchedString, matchedNew.attr, attrBefore)
+                        };
+                        return ignore(match, lastindex, matched);
+                    }
+                    function succMatched() {
+                        var backtrack,
+                            matchedBacktrack;
+
+                        while(matchedStack.length > 0) {
+                            backtrack = matchedStack.pop();
+                            if(!!(matchedBacktrack = wrappedSucc(match, backtrack.lastIndex, backtrack.attr))) {
+                                return nextMatched(matchedBacktrack, false, function(match, syn, inh) { return syn; });
+                            }
+                        }
+                        return null;
+                    }
+
+                    matched = {
+                        match: "",
+                        lastIndex: lastindex,
+                        attr: attr
+                    };
+                    for(i = 0; maxcount === false || i < maxcount; i++) {
+                        if(i >= mincount) {
+                            matchedStack.push(matched);
+                        }
+                        if(!!(matchedNew = wrapped(match, matched.lastIndex, matched.attr))) {
+                            matched = nextMatched(matchedNew, matched.attr, action);
+                        } else if(i < mincount) {
+                            return null;
+                        } else {
+                            return succMatched();
+                        }
+                    }
+                    matchedStack.push(matched);
+                    return succMatched();
+                }
+            },
+
             letrec: function() {
                 var l = Array.prototype.slice.call(arguments),
                     i,
