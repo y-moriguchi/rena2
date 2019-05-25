@@ -52,6 +52,14 @@
         }
     };
 
+    function empty(match, lastindex, attr) {
+        return {
+            match: "",
+            lastIndex: lastindex,
+            attr: attr
+        };
+    }
+
     function rena(option) {
         var me,
             opt = option ? option : {},
@@ -437,21 +445,12 @@
 
             triesTimes: function(mincount, maxcount, pattern, succ, actionFunction) {
                 var wrapped = wrap(pattern),
-                    wrappedSucc,
+                    wrappedSucc = succ ? wrap(succ) : empty,
                     action = actionFunction ? actionFunction : function(match, syn, inh) { return syn; };
 
-                function empty(match, lastindex, attr) {
-                    return {
-                        match: "",
-                        lastIndex: lastindex,
-                        attr: attr
-                    };
-                }
                 if(mincount < 0 || (maxcount && maxcount < mincount)) {
                     throw new Error("Illegal position");
                 }
-                wrappedSucc = succ ? wrap(succ) : empty;
-
                 return function(match, lastindex, attr) {
                     var matched,
                         matchedNew,
@@ -504,6 +503,104 @@
                     matchedStack.push(matched);
                     return succMatched();
                 }
+            },
+
+            triesAtLeast: function(mincount, pattern, succ, actionFunction) {
+                return me.triesTimes(mincount, false, pattern, succ, actionFunction);
+            },
+
+            triesAtMost: function(maxcount, pattern, succ, actionFunction) {
+                return me.triesTimes(0, maxcount, pattern, succ, actionFunction);
+            },
+
+            triesZeroOrMore: function(pattern, succ, actionFunction) {
+                return me.triesTimes(0, false, pattern, succ, actionFunction);
+            },
+
+            triesOneOrMore: function(pattern, succ, actionFunction) {
+                return me.triesTimes(1, false, pattern, succ, actionFunction);
+            },
+
+            triesMaybe: function(pattern, succ) {
+                return me.triesTimes(0, 1, pattern, succ);
+            },
+
+            triesTimesNotGreedy: function(mincount, maxcount, pattern, succ, actionFunction) {
+                var wrapped = wrap(pattern),
+                    wrappedSucc = succ ? wrap(succ) : empty,
+                    action = actionFunction ? actionFunction : function(match, syn, inh) { return syn; };
+
+                if(mincount < 0 || (maxcount && maxcount < mincount)) {
+                    throw new Error("Illegal position");
+                }
+                return function(match, lastindex, attr) {
+                    var matched,
+                        matchedNew,
+                        matchedString,
+                        matchedStack = [],
+                        i;
+
+                    function nextMatched(matchedNew, attrBefore, action) {
+                        var matchedString,
+                            matched;
+
+                        matchedString = match.substring(lastindex, matchedNew.lastIndex);
+                        matched = {
+                            match: matchedString,
+                            lastIndex: matchedNew.lastIndex,
+                            attr: action(matchedString, matchedNew.attr, attrBefore)
+                        };
+                        return ignore(match, lastindex, matched);
+                    }
+
+                    matched = {
+                        match: "",
+                        lastIndex: lastindex,
+                        attr: attr
+                    };
+                    for(i = 0; maxcount === false || i < maxcount; i++) {
+                        if(i < mincount) {
+                            if(!!(matchedNew = wrapped(match, matched.lastIndex, matched.attr))) {
+                                matched = nextMatched(matchedNew, matched.attr, action);
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            if(!!(matchedNew = wrappedSucc(match, matched.lastIndex, matched.attr))) {
+                                return nextMatched(matchedNew, false, function(match, syn, inh) { return syn; });
+                            } else if(!!(matchedNew = wrapped(match, matched.lastIndex, matched.attr))) {
+                                matched = nextMatched(matchedNew, matched.attr, action);
+                            } else {
+                                return null;
+                            }
+                        }
+                    }
+                    if(!!(matchedNew = wrappedSucc(match, matched.lastIndex, matched.attr))) {
+                        return nextMatched(matchedNew, false, function(match, syn, inh) { return syn; });
+                    } else {
+                        return null;
+                    }
+                }
+            },
+
+            triesAtLeastNonGreedy: function(mincount, pattern, succ, actionFunction) {
+                return me.triesTimesNonGreedy(mincount, false, pattern, succ, actionFunction);
+            },
+
+            triesAtMostNonGreedy: function(maxcount, pattern, succ, actionFunction) {
+                return me.triesTimesNonGreedy(0, maxcount, pattern, succ, actionFunction);
+            },
+
+            triesZeroOrMoreNonGreedy: function(pattern, succ, actionFunction) {
+                return me.triesTimesNonGreedy(0, false, pattern, succ, actionFunction);
+            },
+
+            triesOneOrMoreNonGreedy: function(pattern, succ, actionFunction) {
+                return me.triesTimesNonGreedy(1, false, pattern, succ, actionFunction);
+            },
+
+            triesMaybeNonGreedy: function(pattern, succ) {
+                return me.triesTimesNonGreedy(0, 1, pattern, succ);
             },
 
             letrec: function() {
