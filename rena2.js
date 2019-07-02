@@ -86,11 +86,15 @@
 
             if(ignorePattern) {
                 resultNew = ignorePattern(match, result.lastIndex, null);
-                return {
-                    match: match.substring(match, index, resultNew.lastIndex),
-                    lastIndex: resultNew.lastIndex,
-                    attr: result.attr
-                };
+                if(resultNew) {
+                    return {
+                        match: match.substring(match, index, resultNew.lastIndex),
+                        lastIndex: resultNew.lastIndex,
+                        attr: result.attr
+                    };
+                } else {
+                    return result;
+                }
             } else {
                 return result;
             }
