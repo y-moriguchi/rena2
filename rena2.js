@@ -193,6 +193,42 @@
                 }
             },
 
+            thenAction: function() {
+                var args, action;
+
+                if(arguments.length < 1) {
+                    throw new Error("argument must be at least 1");
+                }
+                args = Array.prototype.slice.call(arguments, 0, arguments.length - 1);
+                action = arguments[arguments.length - 1];
+
+                return function(match, lastindex, attr) {
+                    var wrapped,
+                        matched,
+                        attrs = [],
+                        i;
+
+                    matched = {
+                        match: "",
+                        lastIndex: lastindex,
+                        attr: attr
+                    };
+                    for(i = 0; i < args.length; i++) {
+                        wrapped = wrap(args[i]);
+                        if(!(matched = wrapped(match, matched.lastIndex, matched.attr))) {
+                            return null;
+                        }
+                        attrs[i] = matched.attr;
+                        matched = ignore(match, lastindex, matched);
+                    }
+                    return {
+                        match: match.substring(lastindex, matched.lastIndex),
+                        lastIndex: matched.lastIndex,
+                        attr: action.apply(null, attrs)
+                    };
+                }
+            },
+
             or: function() {
                 var args = Array.prototype.slice.call(arguments);
 

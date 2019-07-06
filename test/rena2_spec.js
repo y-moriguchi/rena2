@@ -16,8 +16,24 @@ describe("Rena2", function () {
         expect(result.lastIndex).toBe(lastIndex);
     }
 
+    function matchAttr(pattern, string, match, lastIndex, attr) {
+        var result = pattern(string, 0, false);
+        expect(result.match).toBe(match);
+        expect(result.lastIndex).toBe(lastIndex);
+        expect(result.attr).toBe(attr);
+    }
+
     function nomatch(pattern, string) {
         expect(pattern(string, 0, false)).toBeNull();
+    }
+
+    function throwError(patternThunk) {
+        try {
+            patternThunk();
+            fail();
+        } catch(e) {
+            // ok
+        }
     }
 
     function fntest(str, index, attr) {
@@ -64,6 +80,15 @@ describe("Rena2", function () {
             match(ptn, "stringmatches", "stringmatch", 11);
             nomatch(ptn, "stringmatc");
             nomatch(ptn, "strinmatch");
+        });
+
+        it("thenAction", function () {
+            var r = R();
+            matchAttr(r.thenAction(r.real(), "+", r.real(), function(a, _2, b) {
+                return a + b;
+            }), "765+346", "765+346", 7, 1111);
+            nomatch(r.thenAction(r.real(), "+", r.real(), function() {}), "765-961");
+            throwError(function() { r.thenAction(); });
         });
 
         it("br", function () {
