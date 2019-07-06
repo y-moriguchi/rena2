@@ -88,7 +88,7 @@ describe("Rena2", function () {
             match(R().equalsId("if"), "if ", "if", 2);
             match(R().equalsId("if"), "iff", "if", 2);
             match(q1.equalsId("if"), "if", "if", 2);
-            match(q1.equalsId("if"), "if ", "if", 2);
+            match(q1.equalsId("if"), "if ", "if ", 3);
             nomatch(q1.equalsId("if"), "iff");
             nomatch(q1.equalsId("if"), "if+");
             match(q2.equalsId("if"), "if", "if", 2);
@@ -98,7 +98,7 @@ describe("Rena2", function () {
             nomatch(q2.equalsId("if"), "if ");
             nomatch(q2.equalsId("if"), "iff");
             match(q3.equalsId("if"), "if", "if", 2);
-            match(q3.equalsId("if"), "if ", "if", 2);
+            match(q3.equalsId("if"), "if ", "if ", 3);
             match(q3.equalsId("if"), "if+", "if", 2);
             match(q3.equalsId("if"), "if++", "if", 2);
             match(q3.equalsId("if"), "if-", "if", 2);

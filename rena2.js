@@ -42,7 +42,7 @@
                     trie = trie[ch];
                     res += ch;
                 } else {
-                    return null;
+                    break;
                 }
             }
             return {
@@ -88,7 +88,7 @@
                 resultNew = ignorePattern(match, result.lastIndex, null);
                 if(resultNew) {
                     return {
-                        match: match.substring(match, index, resultNew.lastIndex),
+                        match: match.substring(index, resultNew.lastIndex),
                         lastIndex: resultNew.lastIndex,
                         attr: result.attr
                     };
@@ -398,7 +398,7 @@
                         return null;
                     } else {
                         matchedKey = trie.search(match, lastindex);
-                        if(matchedKey !== null) {
+                        if(matchedKey.match !== "") {
                             return null;
                         } else {
                             return {
@@ -420,16 +420,17 @@
                     if(matchedString === null) {
                         return null;
                     } else if(matchedString.lastIndex >= match.length) {
-                        return matchedString;
+                        // matched
                     } else if(ignorePattern === null && trie === null) {
-                        return matchedString;
+                        // matched
                     } else if(ignorePattern !== null && ignorePattern(match, matchedString.lastIndex, attr) !== null) {
-                        return matchedString;
-                    } else if(trie !== null && trie.search(match, matchedString.lastIndex) !== null) {
-                        return matchedString;
+                        // matched
+                    } else if(trie !== null && trie.search(match, matchedString.lastIndex).match !== "") {
+                        // matched
                     } else {
                         return null;
                     }
+                    return ignore(match, lastindex, matchedString);
                 };
             },
 
