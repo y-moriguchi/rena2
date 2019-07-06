@@ -84,9 +84,9 @@ describe("Rena2", function () {
 
         it("thenAction", function () {
             var r = R();
-            matchAttr(r.thenAction(r.real(), "+", r.real(), function(a, _2, b) {
-                return a + b;
-            }), "765+346", "765+346", 7, 1111);
+            matchAttr(r.then(r.attr(1), r.thenAction(r.real(), "+", r.real(), function(a, _2, b, inh) {
+                return a + b - inh;
+            })), "765+346", "765+346", 7, 1110);
             nomatch(r.thenAction(r.real(), "+", r.real(), function() {}), "765-961");
             throwError(function() { r.thenAction(); });
         });

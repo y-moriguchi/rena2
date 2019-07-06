@@ -221,6 +221,7 @@
                         attrs[i] = matched.attr;
                         matched = ignore(match, lastindex, matched);
                     }
+                    attrs[i] = attr;
                     return {
                         match: match.substring(lastindex, matched.lastIndex),
                         lastIndex: matched.lastIndex,
