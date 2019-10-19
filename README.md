@@ -241,7 +241,7 @@ and third argument will pass an inherited attribute.
 
 For example, consider action of the expression.
 ```js
-var match = r.triesOneOrMore(/./, ",");
+var match = r.triesOneOrMoreNonGreedy(/./, ",");
 match("aaaa,aaaa,aaa");
 ```
 
