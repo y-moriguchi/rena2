@@ -179,6 +179,74 @@ r.delimiter(/[0-9]+/, ",");
 
 The r.delimiter can pass an action as third arguments same as simple repetation.
 
+#### Repetation with Backtracking
+Repetation expression matches repetation of specified expression with backtracking.
+The family of repetation expression with backtracking are shown as follows.  
+```
+r.triesTimes(minimum count, maximum count, expression, next match, [action]);
+r.triesAtLeast(minimum count, expression, next match, [action]);
+r.triesAtMost(maximum count, expression, next match, [action]);
+r.triesOneOrMore(expression, next match, [action]);
+r.triesZeroOrMore(expression, next match, [action]);
+r.triesMaybe(expression);
+```
+
+r.triesAtLeast(min, expression, next, action) is equivalent to r.triesTimes(min, false, expression, next, action).  
+r.triesAtMost(max, expression, next, action) is equivalent to r.triesTimes(0, max, expression, next, action).  
+r.triesOneOrMore(expression, next, action) is equivalent to r.triesTimes(1, false, expression, next, action).  
+r.triesZeroOrMore(expression, next, action) is equivalent to r.triesTimes(0, false, expression, next, action).  
+r.triesMaybe(expression, next) is equivalent to r.triesTimes(0, 1, expression, next).  
+
+These expression tries backtracking greedy if the next match is not matched.  
+
+The argument action must specify a function with 3 arguments and return result attribute.  
+First argument of the function will pass a matched string,
+second argument will pass an attribute of repetation expression ("synthesized attribtue"),
+and third argument will pass an inherited attribute.  
+
+For example, consider action of the expression.
+```js
+var match = r.triesOneOrMore("ab", "abab", (match, synthesized, inherited) => inherited + 2);
+match("ababababab", 0, 0);
+```
+
+This expression is matched "ababab" in repetation and "abab" in next match.  
+Attribute of the result will be 6.
+
+#### Repetation with Backtracking Non-greedy
+Repetation expression matches repetation of specified expression with backtracking.
+The family of repetation expression with backtracking are shown as follows.  
+```
+r.triesTimesNonGreedy(minimum count, maximum count, expression, next match, [action]);
+r.triesAtLeastNonGreedy(minimum count, expression, next match, [action]);
+r.triesAtMostNonGreedy(maximum count, expression, next match, [action]);
+r.triesOneOrMoreNonGreedy(expression, next match, [action]);
+r.triesZeroOrMoreNonGreedy(expression, next match, [action]);
+r.triesMaybeNonGreedy(expression);
+```
+
+r.triesAtLeastNonGreedy(min, expression, next, action) is equivalent to r.triesTimesNonGreedy(min, false, expression, next, action).  
+r.triesAtMostNonGreedy(max, expression, next, action) is equivalent to r.triesTimesNonGreedy(0, max, expression, next, action).  
+r.triesOneOrMoreNonGreedy(expression, next, action) is equivalent to r.triesTimesNonGreedy(1, false, expression, next, action).  
+r.triesZeroOrMoreNonGreedy(expression, next, action) is equivalent to r.triesTimesNonGreedy(0, false, expression, next, action).  
+r.triesMaybeNonGreedy(expression, next) is equivalent to r.triesTimesNonGreedy(0, 1, expression, next).  
+
+These expression tries if next match expression is matched. If next match is not matched, it will try next repetation.  
+So these expression backtracks non-greedy.  
+
+The argument action must specify a function with 3 arguments and return result attribute.  
+First argument of the function will pass a matched string,
+second argument will pass an attribute of repetation expression ("synthesized attribtue"),
+and third argument will pass an inherited attribute.  
+
+For example, consider action of the expression.
+```js
+var match = r.triesOneOrMore(/./, ",");
+match("aaaa,aaaa,aaa");
+```
+
+This expression is matched "aaaa" in repetation and "," in next match so backtracking is non-greedy.  
+
 #### Lookahead (AND predicate)
 Lookahead (AND predicate) matches the specify expression but does not consume input string.
 Below example matches "ab" but matched string is "a", and does not match "ad".
