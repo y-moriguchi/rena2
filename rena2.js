@@ -567,7 +567,7 @@
                 return me.triesTimes(0, 1, pattern, succ);
             },
 
-            triesTimesNotGreedy: function(mincount, maxcount, pattern, succ, actionFunction) {
+            triesTimesNonGreedy: function(mincount, maxcount, pattern, succ, actionFunction) {
                 var wrapped = wrap(pattern),
                     wrappedSucc = succ ? wrap(succ) : empty,
                     action = actionFunction ? actionFunction : function(match, syn, inh) { return syn; };

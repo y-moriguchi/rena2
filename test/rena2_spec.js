@@ -7,7 +7,7 @@
  * http://opensource.org/licenses/mit-license.php
  **/
 /*
- * This test case describe by Jasmine.
+ * This test case is described for Jasmine.
  */
 describe("Rena2", function () {
     function match(pattern, string, match, lastIndex) {
@@ -242,6 +242,103 @@ describe("Rena2", function () {
             nomatch(R().delimit(/[0-9]+/, "+"), "+961");
         });
 
+        it("triesTimes", function () {
+            match(R().triesTimes(2, 5, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesTimes(2, 5, "ab", "abab"), "ababababababab", "ababababababab", 14);
+            match(R().triesTimes(2, 5, "ab", "abab"), "abababababababab", "ababababababab", 14);
+            nomatch(R().triesTimes(2, 5, "ab", "abab"), "ababab");
+            nomatch(R().triesTimes(2, 5, "ab", "abab"), "abababc");
+            match(R().triesTimes(2, 2, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesTimes(2, 2, "ab", "abab"), "ababababab", "abababab", 8);
+            nomatch(R().triesTimes(2, 2, "ab", "abab"), "ababab");
+            match(R().triesTimes(0, 2, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesTimes(0, 2, "ab", "abab"), "abab", "abab", 4);
+            match(R().triesTimes(0, 2, "ab", "abab"), "ababababab", "abababab", 8);
+            match(R().triesTimes(2, false, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesTimes(2, false, "ab", "abab"), "abababababababab", "abababababababab", 16);
+            nomatch(R().triesTimes(2, false, "ab", "abab"), "ababab");
+            nomatch(R().triesTimes(2, false, "ab", "abab"), "abababc");
+            expect(R().triesTimes(0, false, "ab", "abab", function(match, syn, inh) { return inh + 2; })("abababab", 0, 0).attr).toBe(4);
+        });
+
+        it("triesAtLeast", function () {
+            match(R().triesAtLeast(2, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesAtLeast(2, "ab", "abab"), "abababababababab", "abababababababab", 16);
+            nomatch(R().triesAtLeast(2, "ab", "abab"), "ababab");
+            nomatch(R().triesAtLeast(2, "ab", "abab"), "abababc");
+        });
+
+        it("triesAtMost", function () {
+            match(R().triesAtMost(2, "ab", "abab"), "abababab", "abababab", 8);
+            match(R().triesAtMost(2, "ab", "abab"), "abab", "abab", 4);
+            match(R().triesAtMost(2, "ab", "abab"), "ababababab", "abababab", 8);
+        });
+
+        it("triesZeroOrMore", function () {
+            match(R().triesZeroOrMore("ab", "abab"), "abab", "abab", 4);
+            match(R().triesZeroOrMore("ab", "abab"), "abababababababab", "abababababababab", 16);
+            nomatch(R().triesZeroOrMore("ab", "abab"), "ab");
+            nomatch(R().triesZeroOrMore("ab", "abab"), "abc");
+        });
+
+        it("triesOneOrMore", function () {
+            match(R().triesOneOrMore("ab", "abab"), "ababab", "ababab", 6);
+            match(R().triesOneOrMore("ab", "abab"), "abababababababab", "abababababababab", 16);
+            nomatch(R().triesOneOrMore("ab", "abab"), "abab");
+            nomatch(R().triesOneOrMore("ab", "abab"), "ababc");
+        });
+
+        it("triesMaybe", function () {
+            match(R().triesMaybe("string", "!"), "string!", "string!", 7);
+            match(R().triesMaybe("string", "!"), "!", "!", 1);
+            nomatch(R().triesMaybe("string", "!"), "strin");
+        });
+
+        it("triesTimesNonGreedy", function () {
+            match(R().triesTimesNonGreedy(2, 8, /./, ","), "a,a,a,aa", "a,a,", 4);
+            nomatch(R().triesTimesNonGreedy(2, 8, /./, ","), "a,");
+            match(R().triesTimesNonGreedy(2, 8, /./, ","), "aaaaaaaa,", "aaaaaaaa,", 9);
+            nomatch(R().triesTimesNonGreedy(2, 8, /./, ","), "aaaaaaaaa,");
+            nomatch(R().triesTimesNonGreedy(2, 8, /./, ","), "aaaaaaa");
+            match(R().triesTimesNonGreedy(2, false, /./, ","), "a,aaa,aaa", "a,aaa,", 6);
+            nomatch(R().triesTimesNonGreedy(2, false, /./, ","), "a,");
+            nomatch(R().triesTimesNonGreedy(2, false, /./, ","), "aaaaaa");
+            match(R().triesTimesNonGreedy(0, 8, /./, ","), "aa,aa,aa", "aa,", 3);
+            match(R().triesTimesNonGreedy(0, 8, /./, ","), "aaaaaaaa,", "aaaaaaaa,", 9);
+            nomatch(R().triesTimesNonGreedy(0, 8, /./, ","), "aaaaaaaaa,");
+            nomatch(R().triesTimesNonGreedy(0, 8, /./, ","), "aaaaaaa");
+            expect(R().triesTimesNonGreedy(2, false, /./, ",", function(match, syn, inh) { return inh + 1; })("aaa,a,a", 0, 0).attr).toBe(3);
+        });
+
+        it("triesAtLeastNonGreedy", function () {
+            match(R().triesAtLeastNonGreedy(2, /./, ","), "a,aaa,aaa", "a,aaa,", 6);
+            nomatch(R().triesAtLeastNonGreedy(2, /./, ","), "a,");
+            nomatch(R().triesAtLeastNonGreedy(2, /./, ","), "aaaaaa");
+        });
+
+        it("triesAtMostNonGreedy", function () {
+            match(R().triesAtMostNonGreedy(8, /./, ","), "aa,aa,aa", "aa,", 3);
+            match(R().triesAtMostNonGreedy(8, /./, ","), "aaaaaaaa,", "aaaaaaaa,", 9);
+            nomatch(R().triesAtMostNonGreedy(8, /./, ","), "aaaaaaaaa,");
+            nomatch(R().triesAtMostNonGreedy(8, /./, ","), "aaaaaaa");
+        });
+
+        it("triesZeroOrMoreNonGreedy", function () {
+            match(R().triesZeroOrMoreNonGreedy(/./, ","), "a,aaa,aaa", "a,", 2);
+            nomatch(R().triesZeroOrMoreNonGreedy(/./, ","), "aaaaaa");
+        });
+
+        it("triesOneOrMoreNonGreedy", function () {
+            match(R().triesOneOrMoreNonGreedy(/./, ","), ",a,aaa,aaa", ",a,", 3);
+            nomatch(R().triesOneOrMoreNonGreedy(/./, ","), ",aaaaaa");
+        });
+
+        it("triesMaybeNonGreedy", function () {
+            match(R().triesMaybeNonGreedy("string", "!"), "string!", "string!", 7);
+            match(R().triesMaybeNonGreedy("string", "!"), "!", "!", 1);
+            nomatch(R().triesMaybeNonGreedy("string", "!"), "strin");
+        });
+
         it("lookahead", function () {
             match(R().then(R().lookahead(/[0-9]+pro/), /[0-9]+/), "765pro", "765", 3);
             match(R().then(/[0-9]+/, R().lookahead("pro")), "765pro", "765", 3);
@@ -275,6 +372,13 @@ describe("Rena2", function () {
             nomatch(q.notKey(), "+");
             nomatch(q.notKey(), "++");
             nomatch(q.notKey(), "*");
+        });
+
+        it("skip space", function () {
+            var r = R({ ignore: /\s+/ });
+            match(r.then("765", "pro"), "765pro", "765pro", 6);
+            match(r.then("765", "pro"), "765  pro", "765  pro", 8);
+            nomatch(r.then("765", "pro"), "76 5pro");
         });
 
         it("letrec", function () {
