@@ -647,24 +647,21 @@
 
             letrec: function() {
                 var l = Array.prototype.slice.call(arguments),
-                    i,
-                    res;
-                res = (function(g) {
-                    return g(g);
-                })(function(p) {
-                    var i,
-                        li,
-                        res = [];
-                    for(i = 0; i < l.length; i++) {
-                        (function (li) {
-                            res.push(function(str, index, captures) {
-                                return (wrap(li.apply(null, p(p))))(str, index, captures);
-                            });
-                        })(l[i]);
-                    }
-                    return res;
-                });
-                return res[0];
+                    delays = [],
+                    memo = [],
+                    i;
+
+                for(i = 0; i < l.length; i++) {
+                    (function(i) {
+                        delays.push(function(match, index, attr) {
+                            if(!memo[i]) {
+                                memo[i] = l[i].apply(null, delays);
+                            }
+                            return memo[i](match, index, attr);
+                        });
+                    })(i);
+                }
+                return delays[0];
             }
         };
         return me;
